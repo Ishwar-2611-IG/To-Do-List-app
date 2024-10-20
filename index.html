@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>To-Do List App</h1>
+        <div class="underline"></div> <!-- Underline div -->
+
+        <!-- Digital Clock -->
+        <div id="clock" class="clock"></div>
+
+        <div class="input-container">
+            <!-- Label and input for task -->
+            <label for="taskInput">Task:</label>
+            <input type="text" id="taskInput" placeholder="Add a new task...">
+
+            <label for="taskDate"> Date:</label>
+            <input type="date" id="taskDate">
+
+            <label for="taskTime">Time:</label>
+            <input type="time" id="taskTime">
+
+            <!-- Add Task button -->
+            <button onclick="addTask()">Add Task</button>
+        </div>
+    </div>
+
+    <!-- Task List Container -->
+    <div class="task-container">
+        <h2>Your Tasks</h2>
+        <div class="underline"></div> <!-- Underline div -->
+        <ul id="taskList"></ul>
+    </div>
+
+    <!-- Bell sound -->
+    <audio id="bellSound" src="simple-notification-152054.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
