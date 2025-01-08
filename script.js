@@ -1,5 +1,5 @@
 // Array to store tasks with deadlines and their trigger count
-let tasksWithDateandTime = [];
+let tasksWithDateAndTime = [];
 
 // Function to add a task
 function addTask() {
@@ -10,46 +10,78 @@ function addTask() {
     const taskDate = taskDateInput.value;
     const taskTime = taskTimeInput.value;
 
-    if (taskText !== '' && taskDate !== '' && taskTime !== '') {
+    if (taskText && taskDate && taskTime) {
         const taskList = document.getElementById('taskList');
         const listItem = document.createElement('li');
+        listItem.style.maxWidth = 'auto'; // Adjust box size according to task name
 
-        // Create the task text
+        // Create task details
         const taskSpan = document.createElement('span');
         taskSpan.textContent = `${taskText} - (${taskDate}) - ${taskTime}`;
 
-        // Create the delete button
+        // Create delete button
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Delete';
         deleteButton.classList.add('delete-btn');
-        deleteButton.onclick = function () {
-            taskList.removeChild(listItem);
-            tasksWithDateandTime = tasksWithDateandTime.filter(task => task.text !== taskText); // Remove task from tasksWithDateandTime array
-        };
+        deleteButton.style.marginLeft = '10px'; // Add space between buttons
+        deleteButton.onclick = () => removeTask(taskList, listItem, taskText);
 
-        // Append text and button to the list item
+        // Create complete button
+        const completeButton = document.createElement('button');
+        completeButton.textContent = 'Complete';
+        completeButton.classList.add('complete-btn');
+        completeButton.style.marginLeft = '10px'; // Add space between buttons
+        completeButton.onclick = () => moveToCompleted(taskList, listItem, taskText);
+
+        // Append text, delete button, and complete button
         listItem.appendChild(taskSpan);
+        listItem.appendChild(completeButton);
         listItem.appendChild(deleteButton);
 
-        // Add toggle functionality to mark task as complete
-        listItem.onclick = function () {
-            listItem.classList.toggle('completed');
-        };
-
-        // Append the list item to the task list
+        // Add to task list
         taskList.appendChild(listItem);
 
-        // Add task to tasksWithDateandTime array with triggerCount initialized to 0
-        tasksWithDateandTime.push({ text: taskText, date: taskDate, time: taskTime, triggerCount: 0 });
+        // Add task to array
+        tasksWithDateAndTime.push({ text: taskText, date: taskDate, time: taskTime, triggerCount: 0 });
 
-        // Show an alert that the task has been added
-        alert(`Task "${taskText}" has been added for date "${taskDate}" at a time of ${taskTime}.`);
+        alert(`Task "${taskText}" added for ${taskDate} at ${taskTime}.`);
 
-        // Clear the input fields
+        // Clear inputs
         taskInput.value = '';
         taskDateInput.value = '';
         taskTimeInput.value = '';
     }
+}
+
+// Function to remove a task
+function removeTask(taskList, listItem, taskText) {
+    taskList.removeChild(listItem);
+    tasksWithDateAndTime = tasksWithDateAndTime.filter(task => task.text !== taskText);
+}
+
+// Function to move task to completed list
+function moveToCompleted(taskList, listItem, taskText) {
+    const completedList = document.getElementById('completedList');
+    taskList.removeChild(listItem);
+
+    const completedItem = document.createElement('li');
+    completedItem.style.maxWidth = 'auto'; // Adjust box size according to task name
+
+    const completedSpan = document.createElement('span');
+    completedSpan.textContent = taskText;
+
+    // Create delete button for completed task
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Delete';
+    deleteButton.classList.add('delete-btn');
+    deleteButton.style.marginLeft = '10px'; // Add space between buttons
+    deleteButton.onclick = () => completedList.removeChild(completedItem);
+
+    // Append elements
+    completedItem.appendChild(completedSpan);
+    completedItem.appendChild(deleteButton);
+
+    completedList.appendChild(completedItem);
 }
 
 // Function to update the clock
@@ -60,34 +92,32 @@ function updateClock() {
     let hours = now.getHours();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
-    
-    const isAM = hours < 12;
-    const amPm = isAM ? "AM" : "PM";
+    const amPm = hours < 12 ? "AM" : "PM";
 
-    // Convert to 12-hour format
+    // Format time
     hours = hours % 12 || 12;
+    const formattedTime = `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)} ${amPm}`;
+    clockElement.textContent = formattedTime;
 
-    // Pad minutes and seconds with leading zeros
-    const minutesFormatted = minutes < 10 ? `0${minutes}` : minutes;
-    const secondsFormatted = seconds < 10 ? `0${seconds}` : seconds;
+    // Check tasks
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = `${padZero(now.getHours())}:${padZero(minutes)}`;
+    checkTaskDateAndTime(currentDate, currentTime);
+}
 
-    // Display the time
-    clockElement.textContent = `${hours}:${minutesFormatted}:${secondsFormatted} ${amPm}`;
-
-    // Check task deadlines
-    const currentDate = now.toISOString().split('T')[0]; // Get the date in YYYY-MM-DD format
-    const currentTime = `${now.getHours()}:${minutesFormatted}`; // Get the time in HH:MM format
-    checkTaskDateandTime(currentDate, currentTime);
+// Function to pad numbers with leading zero
+function padZero(num) {
+    return num < 10 ? `0${num}` : num;
 }
 
 // Function to check task deadlines
-function checkTaskDateandTime(currentDate, currentTime) {
-    tasksWithDateandTime.forEach(task => {
+function checkTaskDateAndTime(currentDate, currentTime) {
+    tasksWithDateAndTime.forEach(task => {
         if (task.date === currentDate && task.time === currentTime) {
-            if (task.triggerCount < 5) {  // Limit to 5 alerts
+            if (task.triggerCount < 2) { // Limit alerts and sounds to 4 times
                 ringBell();
-                alert(`Time for task: ${task.text}`);
-                task.triggerCount += 1;  // Increment the trigger count
+                alert(`Reminder: ${task.text}`);
+                task.triggerCount++;
             } else {
                 console.log(`Task "${task.text}" reached alert limit.`);
             }
@@ -95,11 +125,11 @@ function checkTaskDateandTime(currentDate, currentTime) {
     });
 }
 
-// Function to ring the bell
+// Function to play notification sound
 function ringBell() {
     const bellSound = document.getElementById('bellSound');
-    bellSound.play();
+    bellSound.play().catch(error => console.error('Audio play failed:', error));
 }
 
-// Update the clock every second
+// Initialize clock update
 setInterval(updateClock, 1000);
